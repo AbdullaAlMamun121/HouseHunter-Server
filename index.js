@@ -105,6 +105,19 @@ async function run() {
             res.json({ token });
         });
 
+        app.post('/logout', (req, res) => {
+            // Perform any necessary logout logic (e.g., clearing session, revoking tokens, etc.)
+
+            // Example: Clearing session and user data
+            req.session.destroy((err) => {
+                if (err) {
+                    console.error('Error logging out:', err);
+                    res.status(500).json({ error: 'Failed to logout' });
+                } else {
+                    res.status(200).json({ message: 'Logged out successfully' });
+                }
+            });
+        });
 
         // register user
         app.put('/users/:email', async (req, res) => {
@@ -156,8 +169,8 @@ async function run() {
             const result = await houseCollections.insertOne(housesInfo)
             res.send(result)
         })
-         // get all houses
-         app.get('/houses', jwtVerify,verifyHouseOwner, async (req, res) => {
+        // get all houses
+        app.get('/houses', jwtVerify, verifyHouseOwner, async (req, res) => {
             const result = await houseCollections.find().toArray();
             res.send(result)
         })
@@ -165,7 +178,7 @@ async function run() {
             const result = await houseCollections.find().toArray();
             res.send(result)
         })
-      
+
 
         // Add houses item updates
         app.put('/updateHouses/:id', async (req, res) => {
@@ -186,7 +199,7 @@ async function run() {
                     address: body.address,
                     city: body.city,
                     price: parseFloat(body.price),
-                  
+
                 }
             };
             const result = await houseCollections.updateOne(filter, updateMyHouses);
@@ -215,35 +228,35 @@ async function run() {
             const result = await selectedHousesCollections.deleteOne(query);
             res.send(result);
         })
-        
+
 
         // selected houses 
         app.post('/selectedHouses', jwtVerify, async (req, res) => {
             const selectHouse = req.body;
             const email = req.body.email;
             const houseId = req.body.id;
-          
+
             // Check if the user has previously selected two houses
             const houseCount = await selectedHousesCollections.countDocuments({ email });
-          
+
             if (houseCount >= 2) {
-              // The user has already selected two houses
-              res.send({ error: 'You have already selected two houses. Cannot select more.' });
+                // The user has already selected two houses
+                res.send({ error: 'You have already selected two houses. Cannot select more.' });
             } else {
-              // Check if the user has previously selected the same house
-              const previousSelection = await selectedHousesCollections.findOne({ email, id: houseId });
-          
-              if (previousSelection) {
-                // The user has already selected the same house
-                res.send({ error: 'This house has already been selected by the user.' });
-              } else {
-                // The user has not selected the same house before
-                const result = await selectedHousesCollections.insertOne(selectHouse);
-                res.send(result);
-              }
+                // Check if the user has previously selected the same house
+                const previousSelection = await selectedHousesCollections.findOne({ email, id: houseId });
+
+                if (previousSelection) {
+                    // The user has already selected the same house
+                    res.send({ error: 'This house has already been selected by the user.' });
+                } else {
+                    // The user has not selected the same house before
+                    const result = await selectedHousesCollections.insertOne(selectHouse);
+                    res.send(result);
+                }
             }
-          });
-          
+        });
+
 
 
         // Send a ping to confirm a successful connection
