@@ -182,7 +182,7 @@ async function run() {
 
         // Add houses item updates
         app.put('/updateHouses/:id', async (req, res) => {
-            Set the necessary headers to allow cross-origin requests
+            // Set the necessary headers to allow cross-origin request
             res.setHeader('Access-Control-Allow-Origin', 'https://languagelearning-5d814.web.app');
             res.setHeader('Access-Control-Allow-Methods', 'PUT');
             res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
