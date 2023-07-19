@@ -65,6 +65,7 @@ async function run() {
 
         const userCollections = client.db("HouseHunter").collection("users");
         const houseCollections = client.db("HouseHunter").collection("houses");
+        const selectedHousesCollections = client.db("HouseHunter").collection("selectedHouses");
 
         // JWT authentication key generated
         app.post('/jwt', (req, res) => {
@@ -160,6 +161,11 @@ async function run() {
             const result = await houseCollections.find().toArray();
             res.send(result)
         })
+        app.get('/houses/show', async (req, res) => {
+            const result = await houseCollections.find().toArray();
+            res.send(result)
+        })
+      
 
         // Add houses item updates
         app.put('/updateHouses/:id', async (req, res) => {
@@ -187,13 +193,57 @@ async function run() {
             res.send(result);
         })
 
-        // delete selected houses
+        // delete houses by author
         app.delete('/houses/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await houseCollections.deleteOne(query);
             res.send(result);
         })
+        // selected houses
+        app.get('/selectedHouses', jwtVerify, async (req, res) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const result = await selectedHousesCollections.find(query).toArray();
+            res.send(result);
+        });
+
+        // delete selected houses
+        app.delete('/selectedHouses/:id', jwtVerify, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await selectedHousesCollections.deleteOne(query);
+            res.send(result);
+        })
+        
+
+        // selected houses 
+        app.post('/selectedHouses', jwtVerify, async (req, res) => {
+            const selectHouse = req.body;
+            const email = req.body.email;
+            const houseId = req.body.id;
+          
+            // Check if the user has previously selected two houses
+            const houseCount = await selectedHousesCollections.countDocuments({ email });
+          
+            if (houseCount >= 2) {
+              // The user has already selected two houses
+              res.send({ error: 'You have already selected two houses. Cannot select more.' });
+            } else {
+              // Check if the user has previously selected the same house
+              const previousSelection = await selectedHousesCollections.findOne({ email, id: houseId });
+          
+              if (previousSelection) {
+                // The user has already selected the same house
+                res.send({ error: 'This house has already been selected by the user.' });
+              } else {
+                // The user has not selected the same house before
+                const result = await selectedHousesCollections.insertOne(selectHouse);
+                res.send(result);
+              }
+            }
+          });
+          
 
 
         // Send a ping to confirm a successful connection
